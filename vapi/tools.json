@@ -1,0 +1,116 @@
+[
+  {
+    "name": "addToOrder",
+    "description": "Add a product to the current order",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "product": {
+          "type": "string",
+          "description": "The name of the product to add"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity to add (default: 1)"
+        }
+      },
+      "required": ["product"]
+    }
+  },
+  {
+    "name": "removeFromOrder",
+    "description": "Remove a product from the current order",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "product": {
+          "type": "string",
+          "description": "The name of the product to remove"
+        }
+      },
+      "required": ["product"]
+    }
+  },
+  {
+    "name": "updateOrderItem",
+    "description": "Update the quantity of a product in the current order",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "product": {
+          "type": "string",
+          "description": "The name of the product to update"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The new quantity"
+        }
+      },
+      "required": ["product", "quantity"]
+    }
+  },
+  {
+    "name": "getCurrentOrder",
+    "description": "Get the current order with all items and total",
+    "parameters": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "clearOrder",
+    "description": "Clear all items from the current order",
+    "parameters": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "scheduleOrder",
+    "description": "Schedule an order for a specific date and time within the next 5 days",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "product": {
+          "type": "string",
+          "description": "The name of the product to schedule"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity to schedule (default: 1)"
+        },
+        "date": {
+          "type": "string",
+          "description": "The date in YYYY-MM-DD format (e.g., 2024-03-20)"
+        },
+        "time": {
+          "type": "string",
+          "description": "The time in HH:MM format (e.g., 10:00 for 10 AM, 19:00 for 7 PM)"
+        }
+      },
+      "required": ["product", "date", "time"]
+    }
+  },
+  {
+    "name": "getScheduledOrders",
+    "description": "Get all scheduled orders",
+    "parameters": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "cancelScheduledOrder",
+    "description": "Cancel a scheduled order by its ID",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "description": "The ID of the scheduled order to cancel (e.g., SCH-0001)"
+        }
+      },
+      "required": ["orderId"]
+    }
+  }
+]

@@ -1,0 +1,19 @@
+{
+    "products": [
+        {"name": "Bread", "price": 80, "aliases": ["loaf", "sandwich bread"]},
+        {"name": "Milk", "price": 60, "aliases": ["milk packet", "dairy milk"]},
+        {"name": "Pen Pack", "price": 50, "aliases": ["pen", "pencil pack"]},
+        {"name": "Phone Charger", "price": 350, "aliases": ["charger", "mobile charger"]},
+        {"name": "USB Cable", "price": 150, "aliases": ["cable", "data cable"]},
+        {"name": "Cooking Oil", "price": 200, "aliases": ["oil", "vegetable oil"]},
+        {"name": "Rice", "price": 180, "aliases": ["basmati rice", "white rice"]},
+        {"name": "Sugar", "price": 45, "aliases": ["sugar packet"]},
+        {"name": "Tea", "price": 120, "aliases": ["tea packet", "chai"]},
+        {"name": "Coffee", "price": 200, "aliases": ["coffee powder"]},
+        {"name": "Eggs", "price": 60, "aliases": ["egg tray", "egg pack"]},
+        {"name": "Butter", "price": 80, "aliases": ["dairy butter"]},
+        {"name": "Cheese", "price": 150, "aliases": ["cheese slice"]},
+        {"name": "Notebook", "price": 40, "aliases": ["notepad", "journal"]},
+        {"name": "Pencil", "price": 10, "aliases": ["pencil set"]}
+    ]
+}

@@ -1,0 +1,148 @@
+{
+  "name": "Voice POS Assistant",
+  "model": "gpt-4",
+  "first_message": "Hello! I can help you place orders or schedule them for later. What would you like to order?",
+  "voice": "Rachel",
+  "language": "en-US",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "addToOrder",
+        "description": "Add a product to the current order",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "product": {
+              "type": "string",
+              "description": "The name of the product to add"
+            },
+            "quantity": {
+              "type": "number",
+              "description": "The quantity to add (default: 1)"
+            }
+          },
+          "required": ["product"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "removeFromOrder",
+        "description": "Remove a product from the current order",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "product": {
+              "type": "string",
+              "description": "The name of the product to remove"
+            }
+          },
+          "required": ["product"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "updateOrderItem",
+        "description": "Update the quantity of a product in the current order",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "product": {
+              "type": "string",
+              "description": "The name of the product to update"
+            },
+            "quantity": {
+              "type": "number",
+              "description": "The new quantity"
+            }
+          },
+          "required": ["product", "quantity"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "getCurrentOrder",
+        "description": "Get the current order with all items and total",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "clearOrder",
+        "description": "Clear all items from the current order",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "scheduleOrder",
+        "description": "Schedule an order for a specific date and time within the next 5 days",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "product": {
+              "type": "string",
+              "description": "The name of the product to schedule"
+            },
+            "quantity": {
+              "type": "number",
+              "description": "The quantity to schedule (default: 1)"
+            },
+            "date": {
+              "type": "string",
+              "description": "The date in YYYY-MM-DD format (e.g., 2024-03-20)"
+            },
+            "time": {
+              "type": "string",
+              "description": "The time in HH:MM format (e.g., 10:00 for 10 AM, 19:00 for 7 PM)"
+            }
+          },
+          "required": ["product", "date", "time"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "getScheduledOrders",
+        "description": "Get all scheduled orders",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "cancelScheduledOrder",
+        "description": "Cancel a scheduled order by its ID",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "orderId": {
+              "type": "string",
+              "description": "The ID of the scheduled order to cancel (e.g., SCH-0001)"
+            }
+          },
+          "required": ["orderId"]
+        }
+      }
+    }
+  ],
+  "system_prompt": "You are a helpful voice assistant for a Point of Sale system. You can help customers:\n\n1. Add items to their order\n2. Remove items from their order\n3. Update item quantities\n4. View their current order and total\n5. Clear their order\n6. Schedule orders for future delivery (within the next 5 days)\n7. View scheduled orders\n8. Cancel scheduled orders\n\nWhen scheduling, ask for the product, quantity, date, and time. Make sure the date is within the next 5 days.\n\nAvailable products: Bread, Milk, Pen Pack, Phone Charger, USB Cable, Cooking Oil, Rice, Sugar, Tea, Coffee, Eggs, Butter, Cheese, Notebook, Pencil\n\nAlways be polite and helpful. Confirm orders and schedules clearly."
+}
