@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Voice Order Management</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);min-height:100vh;display:flex;align-items:center;justify-content:center;color:#fff;padding:24px}
+    .container{background:rgba(255,255,255,.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:36px;width:100%;max-width:720px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+    h1{text-align:center;font-size:1.45rem;margin-bottom:5px;color:#a78bfa}
+    .subtitle{text-align:center;font-size:.82rem;color:#94a3b8;margin-bottom:24px}
+    .lang-tabs{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+    .lang-tab{background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.35);color:#c4b5fd;padding:5px 13px;border-radius:20px;cursor:pointer;font-size:.78rem;transition:background .2s}
+    .lang-tab:hover{background:rgba(167,139,250,.28)}
+    textarea{width:100%;padding:13px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:#fff;font-size:1rem;resize:vertical;min-height:78px;outline:none;transition:border .2s}
+    textarea:focus{border-color:#a78bfa}
+    textarea::placeholder{color:#64748b}
+    .btn-row{display:flex;gap:11px;margin-top:13px}
+    button.primary{flex:1;padding:12px;background:linear-gradient(135deg,#7c3aed,#a78bfa);border:none;border-radius:12px;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+    button.primary:hover{opacity:.88}
+    button.primary:disabled{opacity:.5;cursor:not-allowed}
+    button.icon-btn{padding:12px 17px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:12px;color:#fff;font-size:1.25rem;cursor:pointer;transition:background .2s}
+    button.icon-btn:hover{background:rgba(255,255,255,.15)}
+    button.icon-btn.recording{background:rgba(239,68,68,.3);border-color:#ef4444}
+
+    /* Reply hero */
+    .reply-hero{display:none;margin-top:22px;background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(16,185,129,.2));border:1px solid rgba(167,139,250,.4);border-radius:16px;padding:20px 22px;text-align:center}
+    .reply-hero.visible{display:block}
+    .reply-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:#94a3b8;margin-bottom:9px}
+    .reply-text{font-size:1.25rem;font-weight:700;color:#86efac;line-height:1.5;margin-bottom:13px}
+    .replay-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;color:#fff;padding:5px 16px;font-size:.82rem;cursor:pointer;transition:background .2s}
+    .replay-btn:hover{background:rgba(255,255,255,.2)}
+
+    /* Parsed items table */
+    .items-section{display:none;margin-top:14px}
+    .items-section.visible{display:block}
+    .items-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:8px}
+    table{width:100%;border-collapse:collapse;font-size:.88rem}
+    th{background:rgba(124,58,237,.3);padding:8px 12px;text-align:left;font-weight:600;color:#c4b5fd}
+    td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.07);color:#e2e8f0}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,.04)}
+    .action-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.75rem;font-weight:600}
+    .action-add{background:#065f46;color:#6ee7b7}
+    .action-remove{background:#7f1d1d;color:#fca5a5}
+
+    /* Details */
+    .details-box{display:none;margin-top:12px;background:rgba(0,0,0,.2);border-radius:14px;padding:14px}
+    .details-box.visible{display:block}
+    .details-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .detail-item{background:rgba(255,255,255,.05);border-radius:10px;padding:9px 13px}
+    .detail-label{font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:3px}
+    .detail-value{font-size:.88rem;color:#cbd5e1;word-break:break-word}
+    .lang-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.78rem;font-weight:600}
+    .lang-en{background:#1d4ed8}.lang-hi{background:#b45309}.lang-te{background:#065f46}.lang-ta{background:#7c2d12}.lang-mr{background:#4c1d95}.lang-other{background:#4b5563}
+
+    .toggle-btn{background:none;border:none;color:#94a3b8;font-size:.78rem;cursor:pointer;margin-top:9px;display:block;width:100%;text-align:center;padding:3px}
+    .toggle-btn:hover{color:#c4b5fd}
+    .error-msg{color:#f87171;margin-top:13px;font-size:.88rem;display:none}
+    .spinner{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Scheduling modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal{background:#1e1b4b;border:1px solid rgba(167,139,250,.4);border-radius:18px;padding:28px;width:340px;max-width:95vw;position:relative}
+    .modal h2{font-size:1rem;color:#a78bfa;margin-bottom:16px;text-align:center}
+    .modal input[type=date]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(167,139,250,.4);background:rgba(255,255,255,.06);color:#fff;font-size:.95rem;outline:none;cursor:pointer}
+    .modal input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer}
+    .modal-close{position:absolute;top:12px;right:14px;background:none;border:none;color:#94a3b8;font-size:1.1rem;cursor:pointer}
+    .sched-status{margin-top:14px;font-size:.85rem;color:#86efac;min-height:20px;text-align:center}
+    .sched-step{display:none;margin-top:12px;text-align:center}
+    .sched-step.active{display:block}
+    .sched-mic-btn{margin-top:10px;padding:10px 22px;background:linear-gradient(135deg,#7c3aed,#a78bfa);border:none;border-radius:10px;color:#fff;font-size:.9rem;cursor:pointer}
+    .sched-mic-btn.recording{background:rgba(239,68,68,.5)}
+    .sched-orders-list{margin-top:14px;max-height:120px;overflow-y:auto}
+    .sched-order-item{background:rgba(255,255,255,.05);border-radius:8px;padding:7px 10px;margin-bottom:6px;font-size:.78rem;color:#cbd5e1}
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🎙️ AI Voice Order Management</h1>
+  <p class="subtitle">English · Hindi · Telugu · Tamil · Marathi &nbsp;|&nbsp; Bulk Orders · Slang · Audio Reply</p>
+
+  <div class="lang-tabs">
+    <button class="lang-tab" onclick="setInput('Add 50 biscuit packets and 20 water bottles')">🇬🇧 English</button>
+    <button class="lang-tab" onclick="setInput('50 बिस्कुट के पैकेट और 20 पानी की बोतलें जोड़ो')">🇮🇳 Hindi</button>
+    <button class="lang-tab" onclick="setInput('50 బిస్కెట్ ప్యాకెట్లు మరియు 20 నీళ్ల బాటిల్స్ యాడ్ చేయండి')">🌶️ Telugu</button>
+    <button class="lang-tab" onclick="setInput('50 பிஸ்கட் பாக்கெட்டும் 20 தண்ணீர் பாட்டிலும் சேர்க்கவும்')">🌴 Tamil</button>
+    <button class="lang-tab" onclick="setInput('50 बिस्किटचे पॅकेट आणि 20 पाण्याच्या बाटल्या जोडा')">🟠 Marathi</button>
+    <button class="lang-tab" onclick="setInput('anna 30 rice bags add cheyyi')">🗣️ Slang (TE)</button>
+    <button class="lang-tab" onclick="setInput('bhai 40 soap boxes daalo')">🗣️ Slang (HI)</button>
+  </div>
+
+  <textarea id="inputText" placeholder="Type or speak your order in any language..."></textarea>
+
+  <div class="btn-row">
+    <button class="icon-btn" id="micBtn" onclick="toggleMic()" title="Voice Input">🎤</button>
+    <button class="primary" id="processBtn" onclick="processCommand()">Place Order</button>
+    <button class="icon-btn" onclick="openScheduler()" title="Schedule Order">📅</button>
+  </div>
+
+  <p class="error-msg" id="errorMsg"></p>
+
+  <!-- Hero reply -->
+  <div class="reply-hero" id="replyHero">
+    <div class="reply-label">🤖 Order Confirmation (in your language)</div>
+    <div class="reply-text" id="heroReplyText">—</div>
+    <button class="replay-btn" id="replayBtn" onclick="replayAudio()">🔊 Replay Audio</button>
+  </div>
+
+  <!-- Parsed items table -->
+  <div class="items-section" id="itemsSection">
+    <div class="items-title">📦 Parsed Order Items</div>
+    <table id="itemsTable">
+      <thead><tr><th>#</th><th>Action</th><th>Item</th><th>Quantity</th><th>Unit</th></tr></thead>
+      <tbody id="itemsBody"></tbody>
+    </table>
+  </div>
+
+  <button class="toggle-btn" id="toggleBtn" onclick="toggleDetails()" style="display:none">▾ Show processing details</button>
+
+  <div class="details-box" id="detailsBox">
+    <div class="details-grid">
+      <div class="detail-item">
+        <div class="detail-label">Your Input</div>
+        <div class="detail-value" id="resOriginal">—</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Detected Language</div>
+        <div class="detail-value" id="resLang">—</div>
+      </div>
+      <div class="detail-item" style="grid-column:1/-1">
+        <div class="detail-label">Normalized to English</div>
+        <div class="detail-value" id="resNormalized">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scheduling Modal -->
+<div class="modal-overlay" id="schedModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeScheduler()">✕</button>
+    <h2>📅 Schedule an Order</h2>
+
+    <!-- Step 1: date picker -->
+    <div class="sched-step active" id="schedStep1">
+      <p style="font-size:.82rem;color:#94a3b8;margin-bottom:10px">Select a date (today – next 5 days):</p>
+      <input type="date" id="schedDateInput" onchange="onDateSelected()">
+    </div>
+
+    <!-- Step 2: voice time -->
+    <div class="sched-step" id="schedStep2">
+      <p style="font-size:.85rem;color:#c4b5fd">Say the time for your order</p>
+      <p style="font-size:.75rem;color:#64748b;margin-top:4px">e.g. &ldquo;6 PM&rdquo;, &ldquo;8:30 in the evening&rdquo;</p>
+      <button class="sched-mic-btn" id="schedTimeMicBtn" onclick="startVoiceTime()">🎤 Speak Time</button>
+    </div>
+
+    <!-- Step 3: waiting for order via main mic -->
+    <div class="sched-step" id="schedStep3">
+      <p style="font-size:.85rem;color:#c4b5fd">🎤 Speak your order using the mic below</p>
+      <p style="font-size:.75rem;color:#64748b;margin-top:6px">The assistant is listening — say your order, then click Place Order</p>
+    </div>
+
+    <!-- Step 4: voice confirmation -->
+    <div class="sched-step" id="schedStep4">
+      <p style="font-size:.85rem;color:#c4b5fd" id="schedConfirmText"></p>
+      <p style="font-size:.75rem;color:#64748b;margin-top:6px">Say &ldquo;Yes&rdquo; / &ldquo;Confirm&rdquo; or &ldquo;Cancel&rdquo;</p>
+      <button class="sched-mic-btn" id="schedConfirmMicBtn" onclick="listenForConfirmation()">🎤 Speak to Confirm</button>
+    </div>
+
+    <div class="sched-status" id="schedStatus"></div>
+
+    <!-- Scheduled orders list -->
+    <div id="schedOrdersWrap" style="display:none">
+      <p style="font-size:.72rem;color:#94a3b8;margin-top:14px;text-transform:uppercase;letter-spacing:.07em">Scheduled Orders</p>
+      <div class="sched-orders-list" id="schedOrdersList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const LANG_LOCALE = {en:"en-IN",hi:"hi-IN",te:"te-IN",ta:"ta-IN",mr:"mr-IN"};
+  let lastReply="", lastLang="en", detailsOpen=false;
+
+  function setInput(t){ document.getElementById("inputText").value=t; }
+
+  async function processCommand(){
+    const text=document.getElementById("inputText").value.trim();
+    const errEl=document.getElementById("errorMsg");
+    const btn=document.getElementById("processBtn");
+    errEl.style.display="none";
+    if(!text){showError("Please enter a command.");return;}
+    btn.disabled=true;
+    btn.innerHTML='<span class="spinner"></span>Processing...';
+    try{
+      const res=await fetch("/process_v2",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});
+      const data=await res.json();
+      if(data.error){showError(data.error);return;}
+      displayResult(data);
+    }catch(e){showError("Could not connect to server. Make sure app.py is running.");}
+    finally{btn.disabled=false;btn.innerHTML="Place Order";}
+  }
+
+  function displayResult(data){
+    lastReply=data.reply; lastLang=data.detected_language;
+
+    // Hero reply
+    document.getElementById("heroReplyText").textContent=data.reply;
+    document.getElementById("replyHero").classList.add("visible");
+
+    // Parsed items table
+    const tbody=document.getElementById("itemsBody");
+    tbody.innerHTML="";
+    const items=data.parsed_order?.items||[];
+    const action=data.parsed_order?.action||"add";
+    if(items.length>0){
+      items.forEach((it,i)=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td>${i+1}</td>
+          <td><span class="action-badge action-${action}">${action}</span></td>
+          <td>${it.item}</td>
+          <td>${it.quantity}</td>
+          <td>${it.unit}</td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById("itemsSection").classList.add("visible");
+    } else {
+      document.getElementById("itemsSection").classList.remove("visible");
+    }
+
+    // Details
+    const lang=data.detected_language;
+    const badgeClass=`lang-${["en","hi","te","ta","mr"].includes(lang)?lang:"other"}`;
+    document.getElementById("resOriginal").textContent=data.original;
+    document.getElementById("resLang").innerHTML=`<span class="lang-badge ${badgeClass}">${data.language_name} (${lang})</span>`;
+    document.getElementById("resNormalized").textContent=data.normalized;
+
+    detailsOpen=false;
+    document.getElementById("detailsBox").classList.remove("visible");
+    document.getElementById("toggleBtn").style.display="block";
+    document.getElementById("toggleBtn").textContent="▾ Show processing details";
+
+    speakReply(data.reply, data.detected_language);
+  }
+
+  function speakReply(text,langCode){
+    if(!window.speechSynthesis)return;
+    window.speechSynthesis.cancel();
+    const utter=new SpeechSynthesisUtterance(text);
+    utter.lang=LANG_LOCALE[langCode]||"en-IN";
+    utter.rate=0.95; utter.pitch=1;
+    const btn=document.getElementById("replayBtn");
+    utter.onstart=()=>{btn.textContent="🔊 Speaking...";btn.disabled=true;};
+    utter.onend=utter.onerror=()=>{btn.textContent="🔊 Replay Audio";btn.disabled=false;};
+    window.speechSynthesis.speak(utter);
+  }
+
+  function replayAudio(){ if(lastReply) speakReply(lastReply,lastLang); }
+
+  function toggleDetails(){
+    detailsOpen=!detailsOpen;
+    document.getElementById("detailsBox").classList.toggle("visible",detailsOpen);
+    document.getElementById("toggleBtn").textContent=detailsOpen?"▴ Hide processing details":"▾ Show processing details";
+  }
+
+  function showError(msg){const el=document.getElementById("errorMsg");el.textContent=msg;el.style.display="block";}
+
+  let recognition=null,isRecording=false;
+  function toggleMic(){
+    if(!("webkitSpeechRecognition" in window||"SpeechRecognition" in window)){showError("Speech recognition not supported. Try Chrome.");return;}
+    if(isRecording){recognition.stop();return;}
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    recognition=new SR(); recognition.lang="en-IN"; recognition.interimResults=false;
+    recognition.onstart=()=>{isRecording=true;document.getElementById("micBtn").classList.add("recording");document.getElementById("micBtn").textContent="⏹️";};
+    recognition.onresult=(e)=>{document.getElementById("inputText").value=e.results[0][0].transcript;};
+    recognition.onend=()=>{isRecording=false;document.getElementById("micBtn").classList.remove("recording");document.getElementById("micBtn").textContent="🎤";};
+    recognition.onerror=recognition.onend;
+    recognition.start();
+  }
+
+  document.getElementById("inputText").addEventListener("keydown",(e)=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();processCommand();}});
+
+  // ── Order Scheduling ────────────────────────────────────────────────────────
+  let _schedDate="", _schedTime="", _schedOrder="", _schedRec=null, _schedLang="en";
+  // positive/negative keywords across supported languages
+  const _YES_WORDS = ["yes","confirm","ok","okay","sure","haan","ha","avunu","aamam","ho","that's it","thats it","book it","place it","done"];
+  const _NO_WORDS  = ["no","cancel","nahi","nahi chahiye","vendu","nako","bandh"];
+
+  function openScheduler(){
+    resetScheduler();
+    const today=new Date(), max=new Date();
+    max.setDate(today.getDate()+5);
+    const fmt=d=>d.toISOString().split("T")[0];
+    const inp=document.getElementById("schedDateInput");
+    inp.min=fmt(today); inp.max=fmt(max); inp.value="";
+    document.getElementById("schedModal").classList.add("open");
+    loadScheduledOrders();
+    speakInLang("Please select a date for your scheduled order.", "en");
+  }
+
+  function closeScheduler(){
+    document.getElementById("schedModal").classList.remove("open");
+    if(_schedRec){try{_schedRec.stop();}catch(e){}}
+  }
+
+  function resetScheduler(){
+    _schedDate=""; _schedTime=""; _schedOrder=""; _schedLang="en";
+    ["schedStep1","schedStep2","schedStep3","schedStep4"].forEach((id,i)=>{
+      document.getElementById(id).classList.toggle("active",i===0);
+    });
+    document.getElementById("schedStatus").textContent="";
+  }
+
+  function showSchedStep(n){
+    ["schedStep1","schedStep2","schedStep3","schedStep4"].forEach((id,i)=>{
+      document.getElementById(id).classList.toggle("active",i===n-1);
+    });
+  }
+
+  function onDateSelected(){
+    const val=document.getElementById("schedDateInput").value;
+    if(!val) return;
+    _schedDate=val;
+    showSchedStep(2);
+    speakInLang("Please tell me the time for your scheduled order.", _schedLang);
+  }
+
+  function startVoiceTime(){
+    const btn=document.getElementById("schedTimeMicBtn");
+    voiceListen(async (transcript)=>{
+      // translate to English first so regional time words can be parsed
+      let inEnglish=transcript;
+      try{
+        const res=await fetch("/translate",{method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({text:transcript,target_lang:"en",source_lang:"auto"})
+        });
+        const d=await res.json();
+        if(d.translated) inEnglish=d.translated;
+      }catch(e){}
+
+      const parsed=parseTime(inEnglish);
+      if(!parsed){
+        const errMsg=await translateText("Sorry, I could not understand the time. Please try again.",_schedLang);
+        setSchedStatus(errMsg);
+        speakInLang(errMsg,_schedLang);
+        return;
+      }
+      _schedTime=parsed;
+      setSchedStatus("");
+      showSchedStep(3);
+      closeScheduler();
+      translateAndSpeak("What would you like to order?",_schedLang,()=>{
+        setTimeout(()=>startSchedOrderMic(),600);
+      });
+    }, btn, LANG_LOCALE[_schedLang]||"en-IN");
+  }
+
+  function startSchedOrderMic(){
+    if(!("webkitSpeechRecognition" in window||"SpeechRecognition" in window)) return;
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    const rec=new SR();
+    rec.lang=LANG_LOCALE[_schedLang]||"en-IN";
+    rec.interimResults=false;
+    const micBtn=document.getElementById("micBtn");
+    rec.onstart=()=>{micBtn.classList.add("recording");micBtn.textContent="⏹️";};
+    rec.onresult=(e)=>{
+      const transcript=e.results[0][0].transcript;
+      document.getElementById("inputText").value=transcript;
+      _schedOrder=transcript;
+      micBtn.classList.remove("recording"); micBtn.textContent="🎤";
+      onSchedOrderCaptured();
+    };
+    rec.onend=rec.onerror=()=>{micBtn.classList.remove("recording");micBtn.textContent="🎤";};
+    rec.start();
+  }
+
+  async function onSchedOrderCaptured(){
+    // run through pipeline to detect language AND get translated reply
+    let pipelineReply="";
+    try{
+      const res=await fetch("/process_v2",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:_schedOrder})});
+      const data=await res.json();
+      if(!data.error){
+        _schedLang=data.detected_language||"en";
+        pipelineReply=data.reply||"";
+      }
+    }catch(e){}
+
+    // build confirmation using pipeline reply + scheduled date/time (translated)
+    const dateStr=new Date(_schedDate+"T00:00:00").toLocaleDateString("en-US",{month:"long",day:"numeric"});
+    const timeDisplay=formatTimeDisplay(_schedTime);
+    const schedPartEn=`This order is scheduled for ${dateStr} at ${timeDisplay}. Should I confirm?`;
+    const schedPartTranslated=await translateText(schedPartEn, _schedLang);
+    const fullConfirm=pipelineReply ? `${pipelineReply} ${schedPartTranslated}` : schedPartTranslated;
+
+    document.getElementById("schedConfirmText").textContent=fullConfirm;
+    document.getElementById("schedModal").classList.add("open");
+    showSchedStep(4);
+    speakInLang(fullConfirm, _schedLang, ()=>listenForConfirmation());
+  }
+
+  // format "18:00" -> "6:00 PM", "09:30" -> "9:30 AM" for display
+  function formatTimeDisplay(time24){
+    const [hStr,mStr]=time24.split(":");
+    let h=parseInt(hStr), m=parseInt(mStr);
+    const period=h>=12?"PM":"AM";
+    const h12=h%12||12;
+    return `${h12}:${String(m).padStart(2,"0")} ${period}`;
+  }
+
+  function listenForConfirmation(){
+    const btn=document.getElementById("schedConfirmMicBtn");
+    voiceListen(async (transcript)=>{
+      const lower=transcript.toLowerCase();
+      const confirmed=_YES_WORDS.some(w=>lower.includes(w));
+      const cancelled=_NO_WORDS.some(w=>lower.includes(w));
+      if(confirmed){
+        await confirmSchedule();
+      } else if(cancelled){
+        const msg=await translateText("Order cancelled.", _schedLang);
+        setSchedStatus(msg);
+        speakInLang(msg, _schedLang);
+        setTimeout(()=>closeScheduler(), 2000);
+      } else {
+        // re-ask
+        const msg=await translateText("Sorry, I did not understand. Please say yes to confirm or no to cancel.", _schedLang);
+        setSchedStatus(msg);
+        speakInLang(msg, _schedLang, ()=>listenForConfirmation());
+      }
+    }, btn, LANG_LOCALE[_schedLang]||"en-IN");
+  }
+
+  async function confirmSchedule(){
+    if(!_schedDate||!_schedTime||!_schedOrder){setSchedStatus("Missing details.");return;}
+    // _schedTime is already HH:MM 24h
+    try{
+      const res=await fetch("/schedule",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({order_text:_schedOrder,date:_schedDate,time:_schedTime})});
+      const data=await res.json();
+      if(data.error){
+        const errMsg=await translateText("Sorry, could not schedule the order. "+data.error, _schedLang);
+        setSchedStatus(errMsg); return;
+      }
+      const dateStr=new Date(_schedDate+"T00:00:00").toLocaleDateString("en-US",{month:"long",day:"numeric"});
+      const timeDisplay=formatTimeDisplay(_schedTime);
+      const successEn=`Order successfully placed! Your order has been scheduled for ${dateStr} at ${timeDisplay}.`;
+      const successMsg=await translateText(successEn, _schedLang);
+      setSchedStatus("✅ "+successMsg);
+      speakInLang(successMsg, _schedLang);
+      loadScheduledOrders();
+      setTimeout(()=>{ resetScheduler(); showSchedStep(1); }, 4000);
+    }catch(e){setSchedStatus("Could not connect to server.");}
+  }
+
+  async function loadScheduledOrders(){
+    try{
+      const res=await fetch("/scheduled-orders");
+      const orders=await res.json();
+      const wrap=document.getElementById("schedOrdersWrap");
+      const list=document.getElementById("schedOrdersList");
+      if(!orders.length){wrap.style.display="none";return;}
+      wrap.style.display="block";
+      list.innerHTML=orders.map(o=>{
+        const dt=new Date(o.scheduled_for).toLocaleString();
+        const badge=o.status==="executed"?"✅":"⏳";
+        return `<div class="sched-order-item">${badge} ${o.order_text} &mdash; ${dt}</div>`;
+      }).join("");
+    }catch(e){}
+  }
+
+  function setSchedStatus(msg){document.getElementById("schedStatus").textContent=msg;}
+
+  // speak text that is already in the target language
+  function speakInLang(text, langCode, onDone){
+    if(!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=LANG_LOCALE[langCode]||"en-IN"; u.rate=0.95;
+    if(onDone) u.onend=onDone;
+    window.speechSynthesis.speak(u);
+  }
+
+  // translate English text then speak in target language
+  async function translateAndSpeak(englishText, targetLang, onDone){
+    const translated=await translateText(englishText, targetLang);
+    speakInLang(translated, targetLang, onDone);
+  }
+
+  // call backend to translate English -> targetLang
+  async function translateText(text, targetLang){
+    if(targetLang==="en") return text;
+    try{
+      const res=await fetch("/translate",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({text, target_lang:targetLang})});
+      const data=await res.json();
+      return data.translated||text;
+    }catch(e){return text;}
+  }
+
+  function voiceListen(onResult, btn, lang){
+    if(!("webkitSpeechRecognition" in window||"SpeechRecognition" in window)){
+      setSchedStatus("Speech recognition not supported. Try Chrome."); return;
+    }
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    _schedRec=new SR(); _schedRec.lang=lang||"en-IN"; _schedRec.interimResults=false;
+    const origLabel=btn?btn.textContent:"";
+    _schedRec.onstart=()=>{if(btn){btn.classList.add("recording");btn.textContent="⏹️ Listening...";}};
+    _schedRec.onresult=(e)=>{
+      const t=e.results[0][0].transcript;
+      if(btn){btn.classList.remove("recording");btn.textContent=origLabel;}
+      onResult(t);
+    };
+    _schedRec.onerror=_schedRec.onend=()=>{
+      if(btn){btn.classList.remove("recording");btn.textContent=origLabel;}
+    };
+    if(window.speechSynthesis.speaking){
+      window.speechSynthesis.addEventListener("end",()=>_schedRec.start(),{once:true});
+    } else {
+      setTimeout(()=>_schedRec.start(),400);
+    }
+  }
+
+  // Returns HH:MM in 24h format, e.g. "18:00", "09:30"
+  function parseTime(text){
+    text=text.toLowerCase().trim();
+    const isPM=/\b(evening|night|pm|p\.m)\b/.test(text);
+    const isAM=/\b(morning|am|a\.m)\b/.test(text);
+    let h, m=0;
+    const colonMatch=text.match(/(\d{1,2}):(\d{2})/);
+    if(colonMatch){ h=parseInt(colonMatch[1]); m=parseInt(colonMatch[2]); }
+    else { const numMatch=text.match(/(\d{1,2})/); if(!numMatch) return null; h=parseInt(numMatch[1]); }
+    // convert to 24h
+    if(isPM && h<12) h+=12;
+    if(isAM && h===12) h=0;
+    if(!isPM && !isAM && h<7) h+=12; // ambiguous small number, assume PM
+    return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
+  }
+</script>
+</body>
+</html>
